@@ -1,7 +1,7 @@
 from pyspark.sql import DataFrame
 
-from session3.sparksql import *
-from session3.sql_ml import *
+from src.session3.sparksql import *
+from src.session3.sql_ml import *
 
 
 def test_create_dataframe(spark_session):

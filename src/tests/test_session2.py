@@ -1,7 +1,7 @@
 from pyspark.rdd import RDD
 
-from session2.rdd import *
-from session2.pagerank import *
+from src.session2.rdd import *
+from src.session2.pagerank import *
 
 
 def test_rdd_from_list(spark_context):

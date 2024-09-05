@@ -38,6 +38,8 @@ def compute_contributions(urls: List[str], rank: float) -> List[Tuple[str, float
     # YOUR CODE HERE
     # If you're lost on the input/output
     # consult method test_compute_contributions in src/tests/test_session2.py
+    each = rank / len(urls)
+    return [(x, each) for x in urls]
     raise NotImplementedError()
 
 
@@ -46,6 +48,61 @@ def generate_contributions(sc: SparkContext, links: RDD, ranks: RDD) -> RDD:
     # YOUR CODE HERE
     # Let me suggest you to peek into test_generate_contributions() in src/tests/test_session2.py
     # if you need a concrete example of the expected output.
+
+    # links (in wide form):
+    # [
+    #     ("a", ["b", "c", "d"])
+    #     ("c", ["b"]),
+    #     ("b", ["c", "d"]),
+    #     ("d", ["a", "c"])
+    # ]
+
+    # ranks:
+    # [
+    #     ("a", 1.0),
+    #     ("c", 3.0),
+    #     ("b", 2.0),
+    #     ("d", 4.0)
+    # ]
+
+    joined_links_ranks = links.join(ranks)
+    # joined_links_ranks:
+    # [
+    #     ("a", (["b", "c", "d"], 1))
+    #     ("c", (["b"], 3)),
+    #     ("b", (["c", "d"], 2)),
+    #     ("d", (["a", "c"], 4))
+    # ]
+
+    contributions = joined_links_ranks.map(
+        lambda x: (
+            x[0],
+            compute_contributions(x[1][0], x[1][1]),
+        )
+    )
+
+    # contributions:
+    # [
+    #     ("a", [("b", 1 / 3), ("c", 1 / 3), ("d", 1 / 3)]),
+    #     ("c", [("b", 3)]),
+    #     ("b", [("c", 1), ("d", 1)]),
+    #     ("d", [("a", 2), ("c", 2)]),
+    # ]
+
+    output = contributions.flatMap(lambda x: x[1])
+    # expected output:
+    # [
+    #     ("b", 3.0),  # contribution from c
+    #     ("c", 1.0),  # contribution from b
+    #     ("d", 1.0),  # contribution from b
+    #     ("a", 2.0),  # contribution from d
+    #     ("c", 2.0),  # contribution from d
+    #     ("b", 1 / 3),  # contribution from a
+    #     ("c", 1 / 3),  # contribution from a
+    #     ("d", 1 / 3),  # contribution from a
+    # ]
+
+    return output
     raise NotImplementedError()
 
 
