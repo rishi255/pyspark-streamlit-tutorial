@@ -1,0 +1,4 @@
+findspark
+streamlit
+pyspark
+pytest
